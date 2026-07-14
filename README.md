@@ -1,15 +1,14 @@
-`(?:https?:\/\/)?(?:www\.)?beatsaver\.com\/maps\/([a-fA-F0-9]+)`
+## to-do
+- *ideally:*
+    - populate (using api?) song `hash` (for mod/manager compatibility) and `songName` (for user readability if editing via text)
+        - https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
+        - https://github.com/FranciscoRibeiro03/beatsaver-api
 
 ## notes
 - BSManager can find and download maps from keys but won't properly populate the playlist view (will show correct number of maps in summary stats but won't read length or NPS, and (maybe??) won't display songs in list)
 - these maps also won't show in the playlist in-game (but are correctly downloaded and visible in custom levels tab)
     - may stem from the playlist library(?) not supporting loading maps by key alone
-        - ∴ use PlaylistManager to "download" the missing maps (which populates hash field using key)
-
-## maybe helpful
-- https://github.com/rithik-b/PlaylistManager/blob/master/PlaylistManager/Downloaders/PlaylistSequentialDownloader.cs#L284
-- https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
-- https://github.com/FranciscoRibeiro03/beatsaver-api
+        - ∴ use PlaylistManager to "download" the missing maps ([which populates hash field using key](https://github.com/rithik-b/PlaylistManager/blob/7df198c81877c87376995d4aea493fb1ab014866/PlaylistManager/Downloaders/PlaylistSequentialDownloader.cs#L278-L306))
 
 ## samples
 
