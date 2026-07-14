@@ -12,6 +12,30 @@
 
 
     <script>
+        // ref: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+        window.addEventListener("drop", (e) => {
+            e.preventDefault();
+
+            const dropText = e.dataTransfer.getData('text/plain')
+            if (dropText && dropText.trim()) {
+                document.querySelector("form").querySelector("textarea#input").value += dropText;
+            }
+        });
+
+        window.addEventListener("dragover", (e) => {
+            const acceptedItems = [...e.dataTransfer.items].filter((item) =>
+                item.type === "text/plain"
+                || item.type === "image/png"
+                || item.type === "image/jpeg"
+            );
+
+            if (acceptedItems.length > 0) {
+                e.preventDefault();
+            }
+        });
+    </script>
+
+    <script>
         window.addEventListener("load", (e) => {
             const form = document.querySelector("form");
             form.addEventListener("submit", (e) => {
