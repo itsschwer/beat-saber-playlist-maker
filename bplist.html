@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+
+    <title>bplist</title>
+
+
+
+
+    <script>
+        window.addEventListener("load", (e) => {
+            const form = document.querySelector("form");
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                parseForm(e.target);
+            });
+        });
+
+        function parseForm(form) {
+            const title = form.querySelector("input#title")?.value;
+            const author = form.querySelector("input#author")?.value;
+            const description = form.querySelector("input#description")?.value;
+            const input = form.querySelector("textarea#input")?.value;
+
+            const keys = parseBeatSaverKeys(input);
+            const json = construct(title, author, description, keys)
+            const output = JSON.stringify(json, null, 2)
+            document.querySelector("#output").value = output;
+        }
+    </script>
+
+    <script>
+        function parseBeatSaverKeys(text) {
+            const regex = /(?:https?:\/\/)?(?:www\.)?beatsaver\.com\/maps\/([a-fA-F0-9]+)/g;
+
+            return [...text.matchAll(regex)].map(match => match[1]);
+        }
+
+        function construct(title, author, description, keys) {
+            const result = {
+                playlistTitle: title,
+                playlistAuthor: author,
+                playlistDescription: description,
+                songs: keys.map(key => ({key: key})),
+                image: ""
+            }
+
+            return result;
+        }
+    </script>
+</head>
+
+<body>
+    <form>
+        <button type="submit">convert</button>
+
+        <div>
+            <label for="title">playlist title</label>
+            <input id="title" type="text">
+        </div>
+        <div>
+            <label for="author">playlist author</label>
+            <input id="author" type="text">
+        </div>
+        <div>
+            <label for="description">playlist description</label>
+            <input id="description" type="text">
+        </div>
+
+        <div>
+            <label for="input">i:</label>
+            <textarea id="input" spellcheck="false" rows="10" cols="60" autofocus placeholder="https://beatsaver.com/maps/4a9f1"></textarea>
+        </div>
+    </form>
+
+    <div>
+        <label for="output">o:</label>
+        <textarea id="output"spellcheck="false"  rows="10" cols="60" readonly></textarea>
+    </div>
+</body>
+
+</html>
