@@ -1,3 +1,9 @@
+# beat saber playlist maker
+
+[![Live version](https://img.shields.io/badge/live_ver.-0D1117?logo=github)](https://itsschwer.github.io/beat-saber-playlist-maker/bplist.html)
+
+A single-file .html to extract BeatSaver map links from text and turn it into a playlist.
+
 ## to-do
 - *ideally:*
     - populate (using api?) song `hash` (for mod/manager compatibility) and `songName` (for user readability if editing via text)
