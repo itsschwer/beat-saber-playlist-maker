@@ -42,6 +42,24 @@
                 e.preventDefault();
                 parseForm(e.target);
             });
+
+            const save = document.querySelector("button#save");
+            save.addEventListener("click", (e) => {
+                const content = document.querySelector("textarea#output").value;
+                const blob = new Blob([content], { type: 'octet/stream' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+
+                const title = JSON.parse(content)?.playlistTitle;
+                const time = new Date().toISOString();
+                const fileName = title ? `${time} - ${title}` : time;
+                link.download = `${fileName}.bplist`
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
         });
 
         function parseForm(form) {
@@ -53,7 +71,7 @@
             const keys = parseBeatSaverKeys(input);
             const json = construct(title, author, description, keys)
             const output = JSON.stringify(json, null, 2)
-            document.querySelector("#output").value = output;
+            document.querySelector("textarea#output").value = output;
         }
     </script>
 
@@ -105,6 +123,8 @@
         <label for="output">o:</label>
         <textarea id="output"spellcheck="false"  rows="10" cols="60" readonly></textarea>
     </div>
+
+    <button type="button" id="save">save</button>
 </body>
 
 </html>
