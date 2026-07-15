@@ -4,12 +4,6 @@
 
 A single-file .html to extract BeatSaver map links from text and turn it into a playlist.
 
-## to-do
-- *ideally:*
-    - populate (using api?) song `hash` (for mod/manager compatibility) and `songName` (for user readability if editing via text)
-        - https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
-        - https://github.com/FranciscoRibeiro03/beatsaver-api
-
 ## notes
 - BSManager can find and download maps from keys but won't properly populate the playlist view (will show correct number of maps in summary stats but won't read length or NPS, and (maybe??) won't display songs in list)
 - these maps also won't show in the playlist in-game (but are correctly downloaded and visible in custom levels tab)

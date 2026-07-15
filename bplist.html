@@ -100,14 +100,14 @@
             });
         });
 
-        function parseForm(form) {
+        async function parseForm(form) {
             const title = form.querySelector("input#title")?.value;
             const author = form.querySelector("input#author")?.value;
             const description = form.querySelector("input#description")?.value;
             const input = form.querySelector("textarea#input")?.value;
 
             const keys = parseBeatSaverKeys(input);
-            const json = construct(title, author, description, keys)
+            const json = await construct(title, author, description, keys)
             const output = JSON.stringify(json, null, 2)
             document.querySelector("textarea#output").value = output;
         }
@@ -120,17 +120,50 @@
             return [...text.matchAll(regex)].map(match => match[1]);
         }
 
-        function construct(title, author, description, keys) {
+        async function construct(title, author, description, keys) {
             const result = {
                 playlistTitle: title,
                 playlistAuthor: author,
                 playlistDescription: description,
-                songs: keys.map(key => ({key: key})),
+                songs: await fetchSongs(keys),
                 image: ""
             }
 
             return result;
         }
+
+        async function fetchSongs(keys) {
+            // https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
+            const beatsaver = "https://api.beatsaver.com/maps/ids/";
+            // ^ Up to 50 ids seperated by commas
+
+            try {
+                const response = await fetch(`${beatsaver}4a9f1,1b1ba,g,C22C,13E9,155,65d0`);
+                if (!response.ok) {
+                    console.warn(`${response.status}: ${response.statusText}`);
+                    return keys.map(key => ({key: key}));
+                }
+
+                const result = await response.json();
+                const array = Object.values(Object.values(result));
+                return array.map(obj => ({
+                    key: obj.id,
+                    songName: obj.name,
+                    hash: obj.versions[0].hash
+                    // ^ Could not find example of map with more than 1 version.
+                    // May not be listed in creation order?
+                    // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
+                }));
+            }
+            catch (error) {
+                console.error(error.message);
+                return keys.map(key => ({key: key}));
+            }
+        }
+    </script>
+
+    <script>
+
     </script>
 </head>
 
