@@ -106,10 +106,17 @@
             const description = form.querySelector("input#description")?.value;
             const input = form.querySelector("textarea#input")?.value;
 
+            const submit = form.querySelector('button[type="submit"]')
+            submit.disabled = true;
+            submit.innerText = "converting...";
+
             const keys = parseBeatSaverKeys(input);
             const json = await construct(title, author, description, keys)
             const output = JSON.stringify(json, null, 2)
             document.querySelector("textarea#output").value = output;
+
+            submit.innerText = "convert";
+            submit.disabled = false;
         }
     </script>
 
