@@ -9,6 +9,8 @@ A single-file .html to extract BeatSaver map links from text and turn it into a 
 - these maps also won't show in the playlist in-game (but are correctly downloaded and visible in custom levels tab)
     - may stem from the playlist library(?) not supporting loading maps by key alone
         - ∴ use PlaylistManager to "download" the missing maps ([which populates hash field using key](https://github.com/rithik-b/PlaylistManager/blob/7df198c81877c87376995d4aea493fb1ab014866/PlaylistManager/Downloaders/PlaylistSequentialDownloader.cs#L278-L306))
+<!--  -->
+- Annoyingly, BSManager appears to wipe `songs`' `customData` when editing in the manager (whereas PlaylistManager in-game is less destructive)
 
 ## samples
 

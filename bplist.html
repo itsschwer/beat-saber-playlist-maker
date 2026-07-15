@@ -148,11 +148,14 @@
                 const array = Object.values(Object.values(result));
                 return array.map(obj => ({
                     key: obj.id,
-                    songName: obj.name,
-                    hash: obj.versions[0].hash
+                    songName: obj.metadata.songName,
+                    hash: obj.versions[0].hash,
                     // ^ Could not find example of map with more than 1 version.
                     // May not be listed in creation order?
                     // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
+                    customData: {
+                        name: obj.name,
+                    }
                 }));
             }
             catch (error) {
