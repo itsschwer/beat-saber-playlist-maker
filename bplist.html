@@ -138,7 +138,8 @@
             // ^ Up to 50 ids seperated by commas
 
             try {
-                const response = await fetch(`${beatsaver}4a9f1,1b1ba,g,C22C,13E9,155,65d0`);
+                const csv = JSON.stringify(keys).replace(/[\["\]]/g, "");
+                const response = await fetch(`${beatsaver}${csv}`);
                 if (!response.ok) {
                     console.warn(`${response.status}: ${response.statusText}`);
                     return keys.map(key => ({key: key}));
