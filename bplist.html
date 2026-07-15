@@ -146,7 +146,7 @@
 
                 const result = await response.json();
                 const array = Object.values(Object.values(result));
-                return array.map(obj => ({
+                const songs = array.map(obj => ({
                     key: obj.id,
                     songName: obj.metadata.songName,
                     hash: obj.versions[0].hash,
@@ -157,11 +157,19 @@
                         name: obj.name,
                     }
                 }));
+                // Returned order of songs seems consistent but arbitrary?
+                return reorderSongs(songs, keys);
             }
             catch (error) {
                 console.error(error.message);
                 return keys.map(key => ({key: key}));
             }
+        }
+
+        function reorderSongs(songs, keys) {
+            // ref: https://stackoverflow.com/questions/65993915/sorting-array-of-objects-by-property-to-match-a-provided-list/65993989#65993989
+            const order = Object.fromEntries(keys.map((k, i) => [k.toLowerCase(), i]));
+            return songs.sort((a, b) => order[a.key.toLowerCase()] - order[b.key.toLowerCase()]);
         }
     </script>
 
