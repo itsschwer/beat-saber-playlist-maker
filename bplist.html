@@ -185,12 +185,12 @@
                 const json = await response.json();
                 // Map into response json using keys array to ensure song order matches input,
                 // as well as log missed keys
-                const songs = keys.map(key => {
+                const songs = keys.flatMap(key => {
                     key = key.toLowerCase();
                     const song = json[key]; // Appears returned keys/ids are always lowercase?
                     if (!song) {
                         console.warn(`Could not find data for song with key ${key}`);
-                        return;
+                        return [];
                     }
 
                     return {
