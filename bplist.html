@@ -141,7 +141,7 @@
             submit.innerText = "converting...";
             console.log("converting...");
 
-            const keys = parseBeatSaverKeys(input);
+            const keys = parseBeatSaverKeys(input, true);
             const json = await construct(title, author, description, keys, true);
             const output = JSON.stringify(json, null, 2);
             document.querySelector("textarea#output").value = output;
@@ -153,10 +153,11 @@
     </script>
 
     <script>
-        function parseBeatSaverKeys(text) {
+        function parseBeatSaverKeys(text, deduplicate) {
             const regex = /(?:https?:\/\/)?(?:www\.)?beatsaver\.com\/maps\/([a-fA-F0-9]+)/g;
 
-            return [...text.matchAll(regex)].map(match => match[1]);
+            const keys = [...text.matchAll(regex)].map(match => match[1]);
+            return deduplicate ? [...new Set(keys)] : keys
         }
 
         async function construct(title, author, description, keys, fetchFromApi) {
