@@ -142,8 +142,8 @@
             console.log("converting...");
 
             const keys = parseBeatSaverKeys(input);
-            const json = await construct(title, author, description, keys)
-            const output = JSON.stringify(json, null, 2)
+            const json = await construct(title, author, description, keys, true);
+            const output = JSON.stringify(json, null, 2);
             document.querySelector("textarea#output").value = output;
 
             console.log("converted!");
@@ -159,12 +159,16 @@
             return [...text.matchAll(regex)].map(match => match[1]);
         }
 
-        async function construct(title, author, description, keys) {
+        async function construct(title, author, description, keys, fetchFromApi) {
+            const songs = fetchFromApi ? await fetchSongs(keys) ??
+                keys.map(key => ({key: key})) : keys.map(key => ({key: key}));
+                // ^ Just use keys if not fetching from API or if fetching fails
+
             const result = {
                 playlistTitle: title,
                 playlistAuthor: author,
                 playlistDescription: description,
-                songs: await fetchSongs(keys),
+                songs: songs,
                 image: ""
             }
 
@@ -180,8 +184,7 @@
                 const csv = JSON.stringify(keys).replace(/[\["\]]/g, "");
                 const response = await fetch(`${beatsaver}${csv}`);
                 if (!response.ok) {
-                    console.warn(`${response.status}: ${response.statusText}`);
-                    return keys.map(key => ({key: key}));
+                    throw new Error(`Failed to fetch from BeatSaver API, response status: ${response.status}`);
                 }
 
                 const json = await response.json();
@@ -212,7 +215,6 @@
             }
             catch (error) {
                 console.error(error.message);
-                return keys.map(key => ({key: key}));
             }
         }
 
