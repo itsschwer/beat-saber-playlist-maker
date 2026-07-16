@@ -139,12 +139,14 @@
             const submit = form.querySelector('button[type="submit"]')
             submit.disabled = true;
             submit.innerText = "converting...";
+            console.log("converting...");
 
             const keys = parseBeatSaverKeys(input);
             const json = await construct(title, author, description, keys)
             const output = JSON.stringify(json, null, 2)
             document.querySelector("textarea#output").value = output;
 
+            console.log("converted!");
             submit.innerText = "convert";
             submit.disabled = false;
         }
@@ -189,7 +191,7 @@
                     key = key.toLowerCase();
                     const song = json[key]; // Appears returned keys/ids are always lowercase?
                     if (!song) {
-                        console.warn(`Could not find data for song with key ${key}`);
+                        console.warn(`Could not find song with key '${key}'`);
                         return [];
                     }
 
