@@ -183,13 +183,38 @@
                 }
 
                 const json = await response.json();
-                return mapBeatSaverJsonToSongsArray(json, keys);
+                // Map into response json using keys array to ensure song order matches input,
+                // as well as log missed keys
+                const songs = keys.map(key => {
+                    key = key.toLowerCase();
+                    const song = json[key]; // Appears returned keys/ids are always lowercase?
+                    if (!song) {
+                        console.warn(`Could not find data for song with key ${key}`);
+                        return;
+                    }
+
+                    return {
+                        key: song.id,
+                        songName: song.metadata.songName,
+                        hash: song.versions[0].hash,
+                        // ^ Could not find example of map with more than 1 version.
+                        // May not be listed in creation order?
+                        // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
+                        customData: {
+                            name: song.name
+                        }
+                    }
+                });
+
+                return songs;
             }
             catch (error) {
                 console.error(error.message);
                 return keys.map(key => ({key: key}));
             }
         }
+
+        // old, no longer used =================================================
 
         function mapBeatSaverJsonToSongsArray(json, keys) {
             const array = Object.values(Object.values(json));
@@ -201,7 +226,7 @@
                 // May not be listed in creation order?
                 // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
                 customData: {
-                    name: obj.name,
+                    name: obj.name
                 }
             }));
             // Returned order of songs seems consistent but arbitrary?
