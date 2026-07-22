@@ -170,6 +170,7 @@
                 // ^ Just use keys if not fetching from API or if fetching fails
 
             const result = {
+                // Auto-populate title so BSManager doesn't read it as invalid and so in-game tooltip UX isn't disturbed
                 playlistTitle: title ? title : getDateString(new Date()),
                 playlistAuthor: author,
                 playlistDescription: description,
@@ -269,7 +270,7 @@
             <button type="submit" class="action">convert</button>
 
             <div>
-                <input id="title" type="text">
+                <input id="title" type="text" required>
                 <label for="title">← playlist title</label>
             </div>
             <div>
@@ -281,7 +282,7 @@
                 <label for="description">← playlist description</label>
             </div>
 
-            <textarea id="input" spellcheck="false" rows="10" cols="60" autofocus placeholder="https://beatsaver.com/maps/4a9f1"></textarea>
+            <textarea id="input" required spellcheck="false" rows="10" cols="60" autofocus placeholder="https://beatsaver.com/maps/4a9f1"></textarea>
         </fieldset>
     </form>
 
