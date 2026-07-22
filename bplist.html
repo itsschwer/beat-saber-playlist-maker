@@ -181,6 +181,11 @@
             const beatsaver = "https://api.beatsaver.com/maps/ids/";
             // ^ Up to 50 ids seperated by commas
 
+            if (!keys || keys.length === 0) {
+                console.warn("keys array is empty, no songs to fetch");
+                return;
+            }
+
             try {
                 const csv = JSON.stringify(keys).replace(/[\["\]]/g, "");
                 const response = await fetch(`${beatsaver}${csv}`);
