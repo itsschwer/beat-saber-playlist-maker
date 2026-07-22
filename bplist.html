@@ -160,13 +160,17 @@
             return deduplicate ? [...new Set(keys)] : keys
         }
 
+        function getDateString(date) {
+            return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate()}`;
+        }
+
         async function construct(title, author, description, keys, fetchFromApi) {
             const songs = fetchFromApi ? await fetchSongs(keys) ??
                 keys.map(key => ({key: key})) : keys.map(key => ({key: key}));
                 // ^ Just use keys if not fetching from API or if fetching fails
 
             const result = {
-                playlistTitle: title,
+                playlistTitle: title ? title : getDateString(new Date()),
                 playlistAuthor: author,
                 playlistDescription: description,
                 songs: songs,
