@@ -128,6 +128,13 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
             });
+
+            const export_ = document.querySelector("button#export");
+            export_.addEventListener("click", (e) => {
+                const input = document.querySelector("input#playerdata_dat");
+                const file = input.files[0];
+                parseFile(file, e.target);
+            })
         });
 
         async function parseForm(form) {
@@ -181,6 +188,7 @@
             return result;
         }
 
+        // should be ok to rework this to accept hashes or ids based on a flag (change link too!)
         async function fetchSongs(keys) {
             // https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
             const beatsaver = "https://api.beatsaver.com/maps/ids/";
@@ -227,6 +235,46 @@
             catch (error) {
                 console.error(error.message);
             }
+        }
+    </script>
+
+    <script>
+        function parseFavourites(favourites) {
+            const HASH_LENGTH = 40; // observed
+            const regex = /custom_level_([a-fA-F0-9]+)/;
+
+            const hashes = []
+            for (let fav of favourites) {
+                const match = fav.match(regex);
+                if (match) {
+                    if (match[1].length == HASH_LENGTH) {
+                        hashes.push(match[1]);
+                    }
+                    else {
+                        console.log(match);
+                        // Apparent edge case where id + " " + title is used, so maybe hit individual API search to get hash... to then hit again when batched
+                        // ultimate goal would be to implement the song cache idea, but would require more restructuring
+                    }
+                }
+                else {
+                    console.log(`Non-custom level "${fav}" skipped`);
+                }
+            }
+
+            return hashes;
+        }
+
+        async function parseFile(file, button) {
+            button.innerText = "hi"; // temp
+
+            // https://stackoverflow.com/questions/61707010/read-json-from-from-html-file-input/61713768#61713768
+            new Response(file).json().then(json => {
+                const favourites = json.localPlayers[0].favoritesLevelIds; // Unsure if hard-coded index here would need revisiting
+                console.log(favourites); // temp
+                console.log(parseFavourites(favourites));
+            }, err => {
+                console.log("not json"); // temp
+            });
         }
     </script>
 </head>
@@ -295,6 +343,13 @@
             <textarea id="output"spellcheck="false"  rows="10" cols="60" readonly></textarea>
         </fieldset>
     </div>
+
+    <fieldset>
+        <legend><label for="file">export favourites from PlayerData.dat</label></legend>
+
+        <input type="file" id="playerdata_dat" name="playerdata_dat" accept=".dat, .json" />
+        <button type="button" id="export">export</button>
+    </fieldset>
 </body>
 
 </html>
