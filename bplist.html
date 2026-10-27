@@ -200,20 +200,35 @@
             }
 
             try {
-                const csv = JSON.stringify(keys).replace(/[\["\]]/g, "");
-                const response = await fetch(`${beatsaver}${csv}`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch from BeatSaver API, response status: ${response.status}`);
+                const groups = [];
+                const GROUP_SIZE = 50;
+                for (let i = 0; i < keys.length; i += GROUP_SIZE) {
+                    groups.push(keys.slice(i, i + GROUP_SIZE));
                 }
 
-                const json = await response.json();
+                const responsePromises = groups.map((group) => {
+                    const csv = JSON.stringify(group).replace(/[\["\]]/g, "");
+                    return fetch(`${beatsaver}${csv}`);
+                });
+                const responses = await Promise.all(responsePromises);
+
+                const jsonPromises = responses.map(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch from BeatSaver API, response status: ${response.status}`);
+                    }
+                    return response.json();
+                });
+                const data = await Promise.all(jsonPromises);
+                const json = Object.assign({}, ...data);
+
+
                 // Map into response json using keys array to ensure song order matches input,
                 // as well as log missed keys
                 const songs = keys.flatMap(key => {
                     key = key.toLowerCase();
                     const song = json[key]; // Appears returned keys/ids are always lowercase?
                     if (!song) {
-                        console.warn(`Could not find song with key '${key}'`);
+                        console.warn(`Could not find song with ${byId ? "key" : "hash"} '${key}'`);
                         return [];
                     }
 
