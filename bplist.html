@@ -171,8 +171,8 @@
             return `${date.getUTCFullYear().toString().padStart(4, '0')}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate().toString().padStart(2, '0')}`;
         }
 
-        async function construct(title, author, description, keys, fetchFromApi) {
-            const songs = fetchFromApi ? await fetchSongs(keys) ??
+        async function construct(title, author, description, keys, fetchFromApi, byId = true) {
+            const songs = fetchFromApi ? await fetchSongs(keys, byId) ??
                 keys.map(key => ({key: key})) : keys.map(key => ({key: key}));
                 // ^ Just use keys if not fetching from API or if fetching fails
 
@@ -189,9 +189,9 @@
         }
 
         // should be ok to rework this to accept hashes or ids based on a flag (change link too!)
-        async function fetchSongs(keys) {
+        async function fetchSongs(keys, byId = true) {
             // https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
-            const beatsaver = "https://api.beatsaver.com/maps/ids/";
+            const beatsaver = byId ? "https://api.beatsaver.com/maps/ids/" : "https://api.beatsaver.com/maps/hash/";
             // ^ Up to 50 ids seperated by commas
 
             if (!keys || keys.length === 0) {
@@ -268,10 +268,14 @@
             button.innerText = "hi"; // temp
 
             // https://stackoverflow.com/questions/61707010/read-json-from-from-html-file-input/61713768#61713768
-            new Response(file).json().then(json => {
+            new Response(file).json().then(async (json) => {
                 const favourites = json.localPlayers[0].favoritesLevelIds; // Unsure if hard-coded index here would need revisiting
                 console.log(favourites); // temp
-                console.log(parseFavourites(favourites));
+                const hashes = parseFavourites(favourites)
+                console.log(hashes); // temp
+                const jsonn = await construct("FAVOURITES", "ME", "MY FAVOURITES", hashes, true, false);
+                const output = JSON.stringify(jsonn, null, 2);
+                document.querySelector("textarea#output").value = output;
             }, err => {
                 console.log("not json"); // temp
             });
