@@ -149,7 +149,7 @@
             console.log("converting...");
 
             const keys = parseBeatSaverKeys(input, true);
-            const json = await construct(title, author, description, keys, true);
+            const json = await constructFromIds(title, author, description, keys, true);
             const output = JSON.stringify(json, null, 2);
             document.querySelector("textarea#output").value = output;
 
@@ -171,11 +171,7 @@
             return `${date.getUTCFullYear().toString().padStart(4, '0')}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate().toString().padStart(2, '0')}`;
         }
 
-        async function construct(title, author, description, keys, fetchFromApi, byId = true) {
-            const songs = fetchFromApi ? await fetchSongs(keys, byId) ??
-                keys.map(key => ({key: key})) : keys.map(key => ({key: key}));
-                // ^ Just use keys if not fetching from API or if fetching fails
-
+        function construct(title, author, description, songs) {
             const result = {
                 // Auto-populate title so BSManager doesn't read it as invalid and so in-game tooltip UX isn't disturbed
                 playlistTitle: title ? title : getDateString(new Date()),
@@ -188,7 +184,22 @@
             return result;
         }
 
-        // should be ok to rework this to accept hashes or ids based on a flag (change link too!)
+        async function constructFromIds(title, author, description, keys, fetchFromApi) {
+            const songs = fetchFromApi ? await fetchSongs(keys) ??
+                keys.map(key => ({key: key})) : keys.map(key => ({key: key}));
+                // ^ Just use keys if not fetching from API or if fetching fails
+
+            return construct(title, author, description, songs);
+        }
+
+        async function constructFromHashes(title, author, description, hashes, fetchFromApi) {
+            const songs = fetchFromApi ? await fetchSongs(hashes, false) ??
+                hashes.map(hash => ({hash: hash})) : hashes.map(hash => ({hash: hash}));
+                // ^ Just use hashes if not fetching from API or if fetching fails
+
+            return construct(title, author, description, songs);
+        }
+
         async function fetchSongs(keys, byId = true) {
             // https://api.beatsaver.com/docs/index.html#/OrderedMap%20%7B%20%22name%22%3A%20%22Maps%22%20%7D/get_maps_ids__ids_
             const beatsaver = byId ? "https://api.beatsaver.com/maps/ids/" : "https://api.beatsaver.com/maps/hash/";
@@ -222,33 +233,35 @@
                 const json = Object.assign({}, ...data);
 
 
-                // Map into response json using keys array to ensure song order matches input,
-                // as well as log missed keys
-                const songs = keys.flatMap(key => {
-                    key = key.toLowerCase();
-                    const song = json[key]; // Appears returned keys/ids are always lowercase?
-                    if (!song) {
-                        console.warn(`Could not find song with ${byId ? "key" : "hash"} '${key}'`);
-                        return [];
-                    }
-
-                    return {
-                        key: song.id,
-                        songName: song.metadata.songName,
-                        hash: song.versions[0].hash,
-                        // ^ Could not find example of map with more than 1 version.
-                        // May not be listed in creation order?
-                        // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
-                        customData: {
-                            name: song.name
-                        }
-                    }
-                });
+                // Map into response json using keys array to ensure song order matches input, as well as log missed keys
+                const songs = keys.flatMap(key => extractSongDataFromApiJson(key, json));
 
                 return songs;
             }
             catch (error) {
                 console.error(error.message);
+            }
+        }
+
+        function extractSongDataFromApiJson(key, json) {
+            key = key.toLowerCase();
+            const song = json[key]; // Appears returned keys/ids are always lowercase?
+
+            if (!song) {
+                console.warn(`Could not find song with key '${key}'`);
+                return []; // Return empty array for invalid song to be collapsed by .flatMap()
+            }
+
+            return {
+                key: song.id,
+                songName: song.metadata.songName,
+                hash: song.versions[0].hash,
+                // ^ Could not find example of map with more than 1 version.
+                // May not be listed in creation order?
+                // See: https://github.com/Auros/BeatSaverSharper/blob/61794aa24dac89868e8c02fe1660827a5b7ec635/BeatSaverSharp/Models/Beatmap.cs#L112-L143
+                customData: {
+                    name: song.name
+                }
             }
         }
     </script>
@@ -266,7 +279,7 @@
                         hashes.push(match[1]);
                     }
                     else {
-                        console.log(match);
+                        console.warn(match);
                         // Apparent edge case where id + " " + title is used, so maybe hit individual API search to get hash... to then hit again when batched
                         // ultimate goal would be to implement the song cache idea, but would require more restructuring
                     }
@@ -288,7 +301,7 @@
                 console.log(favourites); // temp
                 const hashes = parseFavourites(favourites)
                 console.log(hashes); // temp
-                const jsonn = await construct("FAVOURITES", "ME", "MY FAVOURITES", hashes, true, false);
+                const jsonn = await constructFromHashes("FAVOURITES", "ME", "MY FAVOURITES", hashes, true);
                 const output = JSON.stringify(jsonn, null, 2);
                 document.querySelector("textarea#output").value = output;
             }, err => {
