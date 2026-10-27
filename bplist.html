@@ -32,13 +32,13 @@
 
         .col textarea {
             width: 100%;
-            margin-block-start: 1em;
+            margin-block-start: 0.5em;
 
             flex: 1;
         }
 
         button.action {
-            margin-block-end: 2em;
+            margin-block-end: 1em;
             width: 100%;
         }
 
@@ -73,6 +73,29 @@
 
         li {
             margin-block-start: 0.2em;
+        }
+
+        .monospace {
+            font-family: monospace;
+        }
+
+        input[type=file] {
+            margin-block-end: unset;
+            width: 100%;
+        }
+
+        .file-input {
+            display: flex;
+            gap: 0.5em;
+        }
+
+        .favourites {
+            margin-block-start: 0.5em;
+        }
+
+        .favourites .tip {
+            display: block;
+            margin-block-end: 0.2em;
         }
     </style>
 
@@ -129,11 +152,10 @@
                 URL.revokeObjectURL(link.href);
             });
 
-            const export_ = document.querySelector("button#export");
-            export_.addEventListener("click", (e) => {
+            const clear = document.querySelector("button#clear");
+            clear.addEventListener("click", (e) => {
                 const input = document.querySelector("input#playerdata_dat");
-                const file = input.files[0];
-                parseFile(file, e.target);
+                input.value = null;
             })
         });
 
@@ -143,19 +165,39 @@
             const description = form.querySelector("input#description")?.value;
             const input = form.querySelector("textarea#input")?.value;
 
-            const submit = form.querySelector('button[type="submit"]')
-            submit.disabled = true;
-            submit.innerText = "converting...";
-            console.log("converting...");
+            const submit = form.querySelector('button[type="submit"]');
 
-            const keys = parseBeatSaverKeys(input, true);
-            const json = await constructFromIds(title, author, description, keys, true);
-            const output = JSON.stringify(json, null, 2);
-            document.querySelector("textarea#output").value = output;
+            const file = form.querySelector("input#playerdata_dat")?.files[0];
+            if (file) {
+                submit.disabled = true;
+                submit.innerText = "exporting...";
+                console.log("exporting...");
 
-            console.log("converted!");
+                const json = await parseFile(file, title, author, description);
+                console.log(json);
+                setOutput(json);
+
+                console.log("exported!");
+            }
+            else {
+                submit.disabled = true;
+                submit.innerText = "converting...";
+                console.log("converting...");
+
+                const keys = parseBeatSaverKeys(input, true);
+                const json = await constructFromIds(title, author, description, keys, true);
+                setOutput(json);
+
+                console.log("converted!");
+            }
+
             submit.innerText = "convert";
             submit.disabled = false;
+        }
+
+        function setOutput(json) {
+            const output = JSON.stringify(json, null, 2);
+            document.querySelector("textarea#output").value = output;
         }
     </script>
 
@@ -307,25 +349,15 @@
             return hashes;
         }
 
-        async function parseFile(file, button) {
-            button.disabled = true;
-            button.innerText = "exporting...";
-            console.log("exporting...");
-
+        async function parseFile(file, title, author, description) {
             // https://stackoverflow.com/questions/61707010/read-json-from-from-html-file-input/61713768#61713768
-            await new Response(file).json().then(async (json) => {
+            return await new Response(file).json().then(async (json) => {
                 const favourites = json.localPlayers[0].favoritesLevelIds; // Unsure if hard-coded index here would need revisiting
                 const hashes = await parseFavourites(favourites)
-                const jsonn = await constructFromHashes("FAVOURITES", "ME", "MY FAVOURITES", hashes, true);
-                const output = JSON.stringify(jsonn, null, 2);
-                document.querySelector("textarea#output").value = output;
+                return await constructFromHashes(title, author, description, hashes, true);
             }, err => {
                 console.warn("not json");
             });
-
-            console.log("exported!")
-            button.innerText = "export";
-            button.disabled = false;
         }
     </script>
 </head>
@@ -348,7 +380,6 @@
             <span class="list-heading">limitations:</span>
             <ul>
                 <li>duplicate songs will be omitted (intentional)</li>
-                <li>can only grab 50 songs at a time</li>
             </ul>
         </div>
 
@@ -356,7 +387,6 @@
             <span class="list-heading">to-do?:</span>
             <ul>
                 <li>cache song data for faster <span style="white-space: nowrap;">re-conversions?</span></li>
-                <li>divide keys into groups of 50 when retrieving from BeatSaver API?</li>
             </ul>
         </div>
 
@@ -381,7 +411,15 @@
                 <label for="description">← playlist description</label>
             </div>
 
-            <textarea id="input" required spellcheck="false" rows="10" cols="60" autofocus placeholder="https://beatsaver.com/maps/4a9f1"></textarea>
+            <textarea id="input" spellcheck="false" rows="10" cols="60" autofocus placeholder="https://beatsaver.com/maps/4a9f1"></textarea>
+
+            <div class="favourites">
+                <span class="tip"><i>or <label for="playerdata_dat">↓ export favourites from <span class="monospace">PlayerData.dat</span></label></i></span>
+                <div class="file-input">
+                    <input type="file" id="playerdata_dat" name="playerdata_dat" accept=".dat, .json" />
+                    <button type="button" id="clear">clear</button>
+                </div>
+            </div>
         </fieldset>
     </form>
 
@@ -394,13 +432,6 @@
             <textarea id="output"spellcheck="false"  rows="10" cols="60" readonly></textarea>
         </fieldset>
     </div>
-
-    <fieldset>
-        <legend><label for="file">export favourites from PlayerData.dat</label></legend>
-
-        <input type="file" id="playerdata_dat" name="playerdata_dat" accept=".dat, .json" />
-        <button type="button" id="export">export</button>
-    </fieldset>
 </body>
 
 </html>
