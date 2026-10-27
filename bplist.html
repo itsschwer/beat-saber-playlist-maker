@@ -279,8 +279,8 @@
                         hashes.push(match[1]);
                     }
                     else {
-                        console.warn(match);
-                        // Apparent edge case where id + " " + title is used, so maybe hit individual API search to get hash... to then hit again when batched
+                        console.warn(`Custom level has unexpected hash "${match[1]}" ["${match[0]}"]`);
+                        // TODO: Apparent edge case where id + " " + title is used, so maybe hit individual API search to get hash... to then hit again when batched
                         // ultimate goal would be to implement the song cache idea, but would require more restructuring
                     }
                 }
@@ -293,20 +293,24 @@
         }
 
         async function parseFile(file, button) {
-            button.innerText = "hi"; // temp
+            button.disabled = true;
+            button.innerText = "exporting...";
+            console.log("exporting...");
 
             // https://stackoverflow.com/questions/61707010/read-json-from-from-html-file-input/61713768#61713768
-            new Response(file).json().then(async (json) => {
+            await new Response(file).json().then(async (json) => {
                 const favourites = json.localPlayers[0].favoritesLevelIds; // Unsure if hard-coded index here would need revisiting
-                console.log(favourites); // temp
                 const hashes = parseFavourites(favourites)
-                console.log(hashes); // temp
                 const jsonn = await constructFromHashes("FAVOURITES", "ME", "MY FAVOURITES", hashes, true);
                 const output = JSON.stringify(jsonn, null, 2);
                 document.querySelector("textarea#output").value = output;
             }, err => {
-                console.log("not json"); // temp
+                console.warn("not json");
             });
+
+            console.log("exported!")
+            button.innerText = "export";
+            button.disabled = false;
         }
     </script>
 </head>
