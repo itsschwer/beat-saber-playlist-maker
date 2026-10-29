@@ -171,20 +171,15 @@
 
             const file = form.querySelector("input#playerdata_dat")?.files[0];
             if (file) {
-                submit.disabled = true;
-                submit.innerText = "exporting...";
-                console.log("exporting...");
+                disableSubmitButton(submit, "exporting...");
 
                 const json = await parseFile(file, title, author, description);
-                console.log(json);
                 setOutput(json);
 
                 console.log("exported!");
             }
             else {
-                submit.disabled = true;
-                submit.innerText = "converting...";
-                console.log("converting...");
+                disableSubmitButton(submit, "converting...");
 
                 const keys = parseBeatSaverKeys(input, true);
                 const json = await constructFromIds(title, author, description, keys, true);
@@ -195,6 +190,13 @@
 
             submit.innerText = "convert";
             submit.disabled = false;
+        }
+
+        function disableSubmitButton(button, message) {
+            button.disabled = true;
+            button.innerText = message;
+            console.log(message);
+            setOutput({});
         }
 
         function setOutput(json) {
